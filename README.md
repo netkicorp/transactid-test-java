@@ -2,6 +2,8 @@
 
 Demo app to test TransctID library.
 
+https://github.com/netkicorp/transactid-library-java
+
 The goal of this demo app is to test your implementation of the TransctID Library.
 
 ## Installation

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Spring Boot ajax example</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <link rel="stylesheet" type="text/css"
+          href="webjars/bootstrap/3.3.7/css/bootstrap.min.css"/>
+</head>
+<body>
+
+<nav class="navbar navbar-inverse">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">Netki</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container" style="min-height: 500px">
+
+    <div class="starter-template">
+        <h1>TransactId Example</h1>
+
+        <div class="alert alert-light" role="alert" style="visibility: hidden"></div>
+
+        <form class="form-horizontal" id="form-configuration">
+            <h3>Configuration</h3>
+
+            <div class="alert alert-light" role="alert" style="visibility: hidden"></div>
+
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label">Wallet address destination*</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="wallet-address"/>
+                </div>
+            </div>
+
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label">Your private key*</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" rows="8" id="private-key"></textarea>
+                </div>
+            </div>
+
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label">Your certificate*</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" rows="8" id="certificate"></textarea>
+                </div>
+            </div>
+
+            <div class="alert alert-danger" role="alert" id="alert-error-configuration">
+                Make sure to put all the configuration values
+            </div>
+
+
+            <div class="alert alert-success" role="alert" id="alert-success-configuration">
+                Configuration successful!!
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" id="btn-configure" class="btn btn-primary btn-lg">
+                        Send parameters
+                    </button>
+                </div>
+            </div>
+
+        </form>
+
+        <form class="form-horizontal" id="form-invoice-request">
+            <h3>Create invoice request</h3>
+
+            <div class="alert alert-light" role="alert" style="visibility: hidden"></div>
+
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label">Amount</label>
+                <div class="col-sm-10">
+                    <input type="number" class="form-control" id="amount"/>
+                </div>
+            </div>
+
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label">Memo</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="memo"/>
+                </div>
+            </div>
+
+            <div class="form-group form-group-lg">
+                <label class="col-sm-2 control-label">Notification URL</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="notification-url"/>
+                </div>
+            </div>
+
+            <div class="alert alert-danger" role="alert" id="alert-error-invoice-request">
+                Make sure to put all the configuration values
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" id="btn-create-invoice" class="btn btn-primary btn-lg">
+                        Create invoice request
+                    </button>
+                </div>
+            </div>
+
+            <div id="alert-invoice-request-content">
+            </div>
+
+        </form>
+
+        <form class="form-horizontal" id="form-send-invoice-request">
+
+            <div class="alert alert-danger" role="alert" id="alert-error-send-invoice-request">
+                Error sending Invoice
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" id="btn-send-invoice-request" class="btn btn-primary btn-lg">
+                        Send Invoice request
+                    </button>
+                </div>
+            </div>
+
+            <div id="alert-payment-request-content">
+            </div>
+
+        </form>
+
+        <form class="form-horizontal" id="form-create-payment">
+
+            <div class="alert alert-danger" role="alert" id="alert-error-create-payment">
+                Error creating payment
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" id="btn-create-payment" class="btn btn-primary btn-lg">
+                        Create Payment
+                    </button>
+                </div>
+            </div>
+
+            <div id="alert-payment-content">
+            </div>
+
+        </form>
+
+        <form class="form-horizontal" id="form-send-payment">
+
+            <div class="alert alert-danger" role="alert" id="alert-error-send-payment">
+                Error sending Invoice
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" id="btn-send-payment" class="btn btn-primary btn-lg">
+                        Send Payment
+                    </button>
+                </div>
+            </div>
+
+            <div id="alert-payment-ack-content">
+            </div>
+
+        </form>
+
+    </div>
+
+    <div class="alert alert-success" role="alert" id="alert-success-process">
+        Full process finished successfully!!
+    </div>
+
+</div>
+
+<div class="container">
+    <footer>
+        <p>
+            © <a href="https://netki.com/">Netki</a> 2019
+        </p>
+    </footer>
+</div>
+
+<script type="text/javascript" src="webjars/jquery/2.2.4/jquery.min.js"></script>
+
+<script type="text/javascript" src="js/main.js"></script>
+
+</body>
+</html>
