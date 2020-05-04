@@ -2,54 +2,65 @@ package com.netki.transactidlibraryjavademo.service
 
 import com.netki.TransactId
 import com.netki.model.*
-import com.netki.security.CryptoModule
 import com.netki.transactidlibraryjavademo.repo.TransactIdRepository
-import com.netki.transactidlibraryjavademo.util.KeyGenerator
-
+import com.netki.transactidlibraryjavademo.util.TestData
 import lombok.extern.slf4j.Slf4j
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.security.Security
 import java.sql.Timestamp
+
 
 @Service
 @Slf4j
 class TransactIdService {
 
-    val logger = LoggerFactory.getLogger(this.javaClass)
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    @Autowired
-    private lateinit var transactIdRepository: TransactIdRepository
+    val ownerParameters = listOf(
+        OwnerParameters(
+            isPrimaryForTransaction = true,
+            pkiDataParametersSets = listOf(
+                PkiDataParameters(
+                    attestation = "identification",
+                    privateKeyPem = TestData.CLIENT_PRIVATE_KEY,
+                    certificatePem = TestData.CLIENT_CERTIFICATE,
+                    type = PkiType.X509SHA256
+                )
+            )
+        )
+    )
 
-    val keyPair = KeyGenerator.Keys.generateKeyPair()
-    val certificate = KeyGenerator.Keys.generateCertificate(keyPair, KeyGenerator.Keys.HASH_ALGORITHM, "test")
-    val keyPairPemX509 = KeyPairPem(
-        CryptoModule.objectToPrivateKeyPem(keyPair.private),
-        CryptoModule.objectToCertificatePem(certificate),
-        PkiType.X509SHA256
+    val senderParameters = SenderParameters(
+        PkiDataParameters(
+            attestation = "identification",
+            privateKeyPem = TestData.SENDER_PRIVATE_KEY,
+            certificatePem = TestData.SENDER_CERTIFICATE,
+            type = PkiType.X509SHA256
+        )
     )
 
     fun getInitialInvoiceRequest(): ByteArray = createTestInvoice()
 
-    fun postInitialInvoiceRequest(url: String) {
-        val invoiceRequest = createTestInvoice()
-        transactIdRepository.postInvoiceRequest(invoiceRequest, url)
-    }
-
     private fun createTestInvoice(): ByteArray {
         val invoiceRequestParameters = InvoiceRequestParameters(
             amount = 1000,
-            memo = "Invoice request for service",
+            memo = "Payment for service",
             notificationUrl = "www.notification.com/notify"
         )
 
-        return TransactId.createInvoiceRequest(invoiceRequestParameters, keyPairPemX509)
+        logger.info("Creating InvoiceRequest")
+        return TransactId.createInvoiceRequest(invoiceRequestParameters, ownerParameters, senderParameters)
     }
 
     fun postInvoiceRequest(invoiceRequest: ByteArray): ByteArray {
-        require(TransactId.isInvoiceRequestValid(invoiceRequest)) { "Invoice request not valid" }
+        logger.info("InvoiceRequest received")
+        logger.info("InvoiceRequest valid? ${TransactId.isInvoiceRequestValid(invoiceRequest)}")
         val invoiceRequestModel = TransactId.parseInvoiceRequest(invoiceRequest)
-        val paymentDetails = PaymentDetails(
+        logger.info("InvoiceRequest parsed: $invoiceRequestModel")
+        val paymentDetails = PaymentParameters(
             network = "main",
             outputs = arrayListOf(
                 Output(100, "Script"),
@@ -62,13 +73,16 @@ class TransactIdService {
             merchantData = "Merchant data"
         )
 
-        return TransactId.createPaymentRequest(paymentDetails, keyPairPemX509, 1)
+        logger.info("Creating PaymentRequest")
+        return TransactId.createPaymentRequest(paymentDetails, ownerParameters, senderParameters, 1)
     }
 
     fun postPaymentRequest(paymentRequest: ByteArray): ByteArray {
-        require(TransactId.isPaymentRequestValid(paymentRequest)) { "Payment request not valid" }
+        logger.info("PaymentRequest received")
+        logger.info("PaymentRequest valid? ${TransactId.isPaymentRequestValid(paymentRequest)}")
         val paymentRequestModel = TransactId.parsePaymentRequest(paymentRequest)
-        val paymentDetails = paymentRequestModel.paymentDetails
+        logger.info("PaymentRequest parsed: $paymentRequestModel")
+        val paymentDetails = paymentRequestModel.paymentParameters
         val paymentModel = Payment(
             merchantData = paymentDetails.merchantData,
             transactions = arrayListOf(
@@ -79,13 +93,17 @@ class TransactIdService {
             memo = paymentDetails.memo
         )
 
+        logger.info("Creating Payment")
         return TransactId.createPayment(paymentModel)
     }
 
     fun postPayment(payment: ByteArray): ByteArray {
-        require(TransactId.isPaymentValid(payment)) { "Payment not valid" }
+        logger.info("Payment received")
+        logger.info("Payment valid? ${TransactId.isPaymentValid(payment)}")
         val paymentModel = TransactId.parsePayment(payment)
+        logger.info("Payment parsed: $paymentModel")
 
+        logger.info("Creating PaymentAck")
         return TransactId.createPaymentAck(paymentModel, "Payment successful")
     }
 }

@@ -46,7 +46,7 @@ This will remove the container from your machine and will free up the memory con
 
 The app has a UI where you can test the endpoints. Once the app is running you can test using:  
 
-http://localhost:8080/swagger-ui.html
+http://localhost:8080/transact-id-docs.html
 
 Also you can implement your own clients to connect to the API.  
 
