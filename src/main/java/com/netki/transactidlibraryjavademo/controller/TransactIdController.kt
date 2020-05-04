@@ -33,22 +33,6 @@ class TransactIdController {
         ResponseEntity.ok(transactIdService.getInitialInvoiceRequest())
 
     @Operation(
-        summary = "Post invoiceRequest binary to URL",
-        description = "Send an invoiceRequest binary to the specified URL"
-    )
-    @RequestMapping(
-        method = [RequestMethod.POST],
-        value = ["/initial-invoice-request"]
-    )
-    fun postInitialInvoiceRequest(
-        @Parameter(description = "URL to post invoice-request")
-        @RequestBody url: String
-    ): ResponseEntity<Any> {
-        transactIdService.postInitialInvoiceRequest(url)
-        return ResponseEntity.ok().build()
-    }
-
-    @Operation(
         summary = "Post invoiceRequest binary",
         description = "Send invoiceRequest binary to this endpoint and receive a paymentRequest binary in return."
     )
