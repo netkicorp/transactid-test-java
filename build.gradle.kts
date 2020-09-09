@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.netki:transactid:0.1.0-alpha4")
+    implementation("com.netki:transactid:0.1.0-alpha12")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -30,8 +30,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-devtools")
     implementation("org.webjars:jquery:2.2.4")
     implementation("org.webjars:bootstrap:3.3.7")
-    implementation("org.projectlombok:lombok:1.18.10")
-    annotationProcessor("org.projectlombok:lombok:1.18.10")
     implementation("org.slf4j:slf4j-api:1.7.25")
     implementation("org.apache.logging.log4j:log4j-api:2.13.0")
     implementation("org.apache.logging.log4j:log4j-core:2.13.0")
