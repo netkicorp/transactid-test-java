@@ -12,12 +12,13 @@ version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
+    mavenLocal()
     jcenter()
     mavenCentral()
 }
 
 dependencies {
-    implementation("com.netki:transactid:0.1.0-alpha12")
+    implementation("com.netki:transactid:0.1.0-alpha15")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
