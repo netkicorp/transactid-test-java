@@ -1,5 +1,6 @@
 package com.netki.transactidlibraryjavademo.controller
 
+import com.netki.transactidlibraryjavademo.model.EncryptionKeys
 import com.netki.transactidlibraryjavademo.service.TransactIdService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -21,6 +22,18 @@ class TransactIdController {
     private lateinit var transactIdService: TransactIdService
 
     @Operation(
+        summary = "Get Encryption keys",
+        description = "Get the set of keys for the sender/recipient, this is needed if you want to generate encrypted messages"
+    )
+    @RequestMapping(
+        method = [RequestMethod.GET],
+        value = ["/encryption/keys"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun getEncryptionKeys(): ResponseEntity<EncryptionKeys> =
+        ResponseEntity.ok(transactIdService.getEncryptionKeys())
+
+    @Operation(
         summary = "Get invoiceRequest binary",
         description = "Request receive back an invoiceRequest binary so that you can test parsing things"
     )
@@ -29,8 +42,24 @@ class TransactIdController {
         value = ["/initial-invoice-request"],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
     )
-    fun getInitialInvoiceRequest(): ResponseEntity<ByteArray> =
-        ResponseEntity.ok(transactIdService.getInitialInvoiceRequest())
+    fun getInitialInvoiceRequest() = ResponseEntity(
+        transactIdService.getInitialInvoiceRequest(),
+        HttpStatus.CREATED
+    )
+
+    @Operation(
+        summary = "Get invoiceRequest binary encrypted",
+        description = "Request receive back an invoiceRequest binary encrypted so that you can test parsing things"
+    )
+    @RequestMapping(
+        method = [RequestMethod.GET],
+        value = ["/initial-invoice-request-encrypted"],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
+    )
+    fun getInitialInvoiceRequestEncrypted() = ResponseEntity(
+        transactIdService.getInitialInvoiceRequestEncrypted(),
+        HttpStatus.CREATED
+    )
 
     @Operation(
         summary = "Post invoiceRequest binary",

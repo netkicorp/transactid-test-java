@@ -59,6 +59,13 @@ Description: `Send a GET request to this to receive back an invoiceRequest binar
 Verb: `GET`  
 Response: `Binary invoiceRequest`  
 
+### Initial invoice request Encrypted
+
+Endpoint: `/initial-invoice-request-encrypted`  
+Description: `Send a GET request to this to receive back an invoiceRequest binary encrypted so that you can test parsing thing`  
+Verb: `GET`  
+Response: `Binary invoiceRequest encrypted`  
+
 Verb: `POST`  
 Description: `If you want to test your full flow with getting an invoiceRequest object at your correct endpoint use the POST as described and it will send the binary object to that URL.`  
 Params:  
@@ -91,3 +98,11 @@ Verb: `POST`
 Params:  
 - payment: `Binary containing payment`  
 Response: `Binary containing paymentAck`  
+
+### Encryption
+You can generate EncryptedMessages to test this functionality. Once you start the service you can fetch a set of ECDSA keys to use in your ProtocolMessages.
+
+Endpoint: `/encryption/keys`  
+Description: `Send a GET request to this to receive a set of sender/recipient keys to test encrypted messages`  
+Verb: `GET`  
+Response: `Set of keys to do encryption`  

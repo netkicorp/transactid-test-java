@@ -12,6 +12,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import java.math.BigInteger
 import java.security.*
 import java.security.cert.Certificate
+import java.security.spec.ECGenParameterSpec
+import java.security.spec.ECParameterSpec
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -25,6 +27,15 @@ object KeyGenerator {
             val keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC")
             keyPairGenerator.initialize(2048, SecureRandom())
             return keyPairGenerator.generateKeyPair()
+        }
+
+        fun generateKeyPairECDSA(): KeyPair {
+            val parameters = AlgorithmParameters.getInstance("EC")
+            parameters.init(ECGenParameterSpec("secp256k1"))
+            val ecParameterSpec: ECParameterSpec = parameters.getParameterSpec(ECParameterSpec::class.java)
+            val keyGen = KeyPairGenerator.getInstance("EC")
+            keyGen.initialize(ecParameterSpec, SecureRandom())
+            return keyGen.generateKeyPair()
         }
 
         fun generateCertificate(keyPair: KeyPair, hashAlgorithm: String, cn: String): Certificate {
