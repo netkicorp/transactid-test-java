@@ -5,7 +5,6 @@ import com.netki.transactidlibraryjavademo.util.TestData.Output.OUTPUTS
 import com.netki.transactidlibraryjavademo.util.TestData.PkiData.PKI_DATA_ONE_OWNER_X509SHA256
 import com.netki.transactidlibraryjavademo.util.TestData.PkiData.PKI_DATA_SENDER_X509SHA256
 import com.netki.transactidlibraryjavademo.util.TestData.PkiData.PKI_DATA_TWO_OWNER_X509SHA256
-import java.sql.Timestamp
 
 object TestData {
 
@@ -111,36 +110,46 @@ object TestData {
             "UM5JZTOfmyf5CwE2lNBZryI=\n" +
             "-----END PRIVATE KEY-----\n"
 
-    object InvoiceRequest {
-        val INVOICE_REQUEST_DATA = InvoiceRequestParameters(
-            amount = 1000,
-            memo = "memo",
-            notificationUrl = "notificationUrl",
-            outputs = OUTPUTS
-        )
-    }
-
-    object PaymentRequest {
-        val PAYMENT_REQUEST_PARAMETERS = PaymentRequestParameters(
-            network = "main",
-            outputs = OUTPUTS,
-            time = Timestamp(System.currentTimeMillis()),
-            expires = Timestamp(System.currentTimeMillis()),
-            memo = "memo",
-            paymentUrl = "www.payment.url/test",
-            merchantData = "merchant data"
-        )
-    }
-
     object Payment {
-        val PAYMENT_PARAMETERS = PaymentParameters(
+        val PAYMENT = Payment(
             merchantData = "merchant data",
             transactions = arrayListOf(
                 "transaction1".toByteArray(),
                 "transaction2".toByteArray()
             ),
             outputs = OUTPUTS,
-            memo = "memo"
+            memo = "memo",
+            beneficiaries = listOf(
+                Beneficiary(
+                    isPrimaryForTransaction = true,
+                    pkiDataSet = listOf(
+                        PkiData(
+                            attestation = Attestation.ADDRESS_COUNTRY,
+                            certificatePem = CLIENT_CERTIFICATE_CHAIN_ONE,
+                            type = PkiType.X509SHA256
+                        )
+                    )
+                )
+            ),
+            originators = listOf(
+                Originator(
+                    isPrimaryForTransaction = true,
+                    pkiDataSet = listOf(
+                        PkiData(
+                            attestation = Attestation.ADDRESS_COUNTRY,
+                            certificatePem = CLIENT_CERTIFICATE_CHAIN_ONE,
+                            type = PkiType.X509SHA256
+                        )
+                    )
+                )
+            ),
+            protocolMessageMetadata = ProtocolMessageMetadata(
+                1,
+                StatusCode.OK,
+                MessageType.PAYMENT,
+                "",
+                "randomIdentifier"
+            )
         )
     }
 
@@ -151,13 +160,35 @@ object TestData {
         )
     }
 
-    object Owners {
-        val PRIMARY_OWNER_PKI_X509SHA256 = OwnerParameters(
+    object Beneficiaries {
+        val PRIMARY_BENEFICIARY_PKI_X509SHA256 = BeneficiaryParameters(
             true,
             listOf(PKI_DATA_ONE_OWNER_X509SHA256, PKI_DATA_TWO_OWNER_X509SHA256)
         )
 
-        val NO_PRIMARY_OWNER_PKI_X509SHA256 = OwnerParameters(
+        val NO_PRIMARY_BENEFICIARY_PKI_X509SHA256 = BeneficiaryParameters(
+            false,
+            listOf(PKI_DATA_ONE_OWNER_X509SHA256, PKI_DATA_TWO_OWNER_X509SHA256)
+        )
+
+        val NO_PRIMARY_BENEFICIARY_PKI_NONE = BeneficiaryParameters(
+            false,
+            listOf(PKI_DATA_ONE_OWNER_X509SHA256, PKI_DATA_TWO_OWNER_X509SHA256)
+        )
+    }
+
+    object Originators {
+        val PRIMARY_ORIGINATOR_PKI_X509SHA256 = OriginatorParameters(
+            true,
+            listOf(PKI_DATA_ONE_OWNER_X509SHA256, PKI_DATA_TWO_OWNER_X509SHA256)
+        )
+
+        val NO_PRIMARY_ORIGINATOR_PKI_X509SHA256 = OriginatorParameters(
+            false,
+            listOf(PKI_DATA_ONE_OWNER_X509SHA256, PKI_DATA_TWO_OWNER_X509SHA256)
+        )
+
+        val NO_PRIMARY_ORIGINATOR_PKI_NONE = OriginatorParameters(
             false,
             listOf(PKI_DATA_ONE_OWNER_X509SHA256, PKI_DATA_TWO_OWNER_X509SHA256)
         )

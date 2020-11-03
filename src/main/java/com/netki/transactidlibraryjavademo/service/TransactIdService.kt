@@ -1,22 +1,22 @@
 package com.netki.transactidlibraryjavademo.service
 
 import com.netki.TransactId
-import com.netki.model.EncryptionParameters
-import com.netki.model.MessageInformation
-import com.netki.model.RecipientParameters
-import com.netki.model.SenderParameters
+import com.netki.model.*
 import com.netki.transactidlibraryjavademo.model.EncryptionKeys
 import com.netki.transactidlibraryjavademo.util.TestData.Attestations.ATTESTATIONS_REQUESTED
-import com.netki.transactidlibraryjavademo.util.TestData.InvoiceRequest.INVOICE_REQUEST_DATA
-import com.netki.transactidlibraryjavademo.util.TestData.Owners.NO_PRIMARY_OWNER_PKI_X509SHA256
-import com.netki.transactidlibraryjavademo.util.TestData.Owners.PRIMARY_OWNER_PKI_X509SHA256
-import com.netki.transactidlibraryjavademo.util.TestData.Payment.PAYMENT_PARAMETERS
-import com.netki.transactidlibraryjavademo.util.TestData.PaymentRequest.PAYMENT_REQUEST_PARAMETERS
+import com.netki.transactidlibraryjavademo.util.TestData.Beneficiaries.NO_PRIMARY_BENEFICIARY_PKI_NONE
+import com.netki.transactidlibraryjavademo.util.TestData.Beneficiaries.NO_PRIMARY_BENEFICIARY_PKI_X509SHA256
+import com.netki.transactidlibraryjavademo.util.TestData.Beneficiaries.PRIMARY_BENEFICIARY_PKI_X509SHA256
+import com.netki.transactidlibraryjavademo.util.TestData.Originators.NO_PRIMARY_ORIGINATOR_PKI_X509SHA256
+import com.netki.transactidlibraryjavademo.util.TestData.Originators.PRIMARY_ORIGINATOR_PKI_X509SHA256
+import com.netki.transactidlibraryjavademo.util.TestData.Output.OUTPUTS
+import com.netki.transactidlibraryjavademo.util.TestData.Payment.PAYMENT
 import com.netki.transactidlibraryjavademo.util.TestData.PkiData.PKI_DATA_SENDER_X509SHA256
 import com.netki.transactidlibraryjavademo.util.TestData.Senders.SENDER_PKI_X509SHA256
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.sql.Timestamp
 import javax.annotation.PostConstruct
 
 @Service
@@ -29,7 +29,6 @@ class TransactIdService {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
     private var transactId = TransactId.getInstance("src/main/resources/certificates")
-    val ownerParameters = listOf(PRIMARY_OWNER_PKI_X509SHA256, NO_PRIMARY_OWNER_PKI_X509SHA256)
     val messageInformationEncrypted = MessageInformation(
         encryptMessage = true
     )
@@ -57,26 +56,53 @@ class TransactIdService {
 
     fun getInitialInvoiceRequest(): ByteArray {
         logger.info("Creating InvoiceRequest...")
-        val invoiceRequest = transactId.createInvoiceRequest(
-            INVOICE_REQUEST_DATA,
-            ownerParameters,
-            SENDER_PKI_X509SHA256,
-            ATTESTATIONS_REQUESTED
+        val originators = listOf(
+            PRIMARY_ORIGINATOR_PKI_X509SHA256,
+            NO_PRIMARY_ORIGINATOR_PKI_X509SHA256
         )
+        val beneficiaries = listOf(
+            PRIMARY_BENEFICIARY_PKI_X509SHA256
+        )
+        val sender = SENDER_PKI_X509SHA256
+        val invoiceRequestParameters = InvoiceRequestParameters(
+            amount = 1000,
+            memo = "memo",
+            notificationUrl = "notificationUrl",
+            originatorsAddresses = OUTPUTS,
+            originatorParameters = originators,
+            beneficiaryParameters = beneficiaries,
+            senderParameters = sender,
+            attestationsRequested = ATTESTATIONS_REQUESTED
+        )
+
+        val invoiceRequest = transactId.createInvoiceRequest(invoiceRequestParameters)
         logger.info("Returning InvoiceRequest...")
         return invoiceRequest
     }
 
     fun getInitialInvoiceRequestEncrypted(): ByteArray {
         logger.info("Creating InvoiceRequest encrypted...")
-        val invoiceRequest = transactId.createInvoiceRequest(
-            INVOICE_REQUEST_DATA,
-            ownerParameters,
-            senderParameters,
-            ATTESTATIONS_REQUESTED,
-            recipientParameters,
-            messageInformationEncrypted
+        val originators = listOf(
+            PRIMARY_ORIGINATOR_PKI_X509SHA256,
+            NO_PRIMARY_ORIGINATOR_PKI_X509SHA256
         )
+        val beneficiaries = listOf(
+            PRIMARY_BENEFICIARY_PKI_X509SHA256
+        )
+        val invoiceRequestParameters = InvoiceRequestParameters(
+            amount = 1000,
+            memo = "memo",
+            notificationUrl = "notificationUrl",
+            originatorsAddresses = OUTPUTS,
+            originatorParameters = originators,
+            beneficiaryParameters = beneficiaries,
+            senderParameters = senderParameters,
+            attestationsRequested = ATTESTATIONS_REQUESTED,
+            recipientParameters = recipientParameters,
+            messageInformation = messageInformationEncrypted
+        )
+
+        val invoiceRequest = transactId.createInvoiceRequest(invoiceRequestParameters)
         logger.info("Returning InvoiceRequest...")
         return invoiceRequest
     }
@@ -96,25 +122,46 @@ class TransactIdService {
         return if (invoiceRequestModel.protocolMessageMetadata.encrypted) {
             logger.info("Creating PaymentRequest Encrypted...")
             logger.info("Returning PaymentRequest Encrypted...")
-            transactId.createPaymentRequest(
-                PAYMENT_REQUEST_PARAMETERS,
-                ownerParameters,
-                senderParameters,
-                ATTESTATIONS_REQUESTED,
-                1,
-                messageInformationEncrypted,
-                recipientParameters
+            val beneficiaries = listOf(
+                PRIMARY_BENEFICIARY_PKI_X509SHA256,
+                NO_PRIMARY_BENEFICIARY_PKI_X509SHA256
             )
+            val paymentRequestParameters = PaymentRequestParameters(
+                network = "main",
+                beneficiariesAddresses = OUTPUTS,
+                time = Timestamp(System.currentTimeMillis()),
+                expires = Timestamp(System.currentTimeMillis()),
+                memo = "memo",
+                paymentUrl = "www.payment.url/test",
+                merchantData = "merchant data",
+                beneficiaryParameters = beneficiaries,
+                senderParameters = senderParameters,
+                attestationsRequested = ATTESTATIONS_REQUESTED,
+                messageInformation = messageInformationEncrypted,
+                recipientParameters = recipientParameters
+            )
+            transactId.createPaymentRequest(paymentRequestParameters)
         } else {
             logger.info("Creating PaymentRequest...")
             logger.info("Returning PaymentRequest...")
-            transactId.createPaymentRequest(
-                PAYMENT_REQUEST_PARAMETERS,
-                ownerParameters,
-                SENDER_PKI_X509SHA256,
-                ATTESTATIONS_REQUESTED,
-                1
+            val beneficiaries = listOf(
+                PRIMARY_BENEFICIARY_PKI_X509SHA256,
+                NO_PRIMARY_BENEFICIARY_PKI_X509SHA256
             )
+            val sender = SENDER_PKI_X509SHA256
+            val paymentRequestParameters = PaymentRequestParameters(
+                network = "main",
+                beneficiariesAddresses = OUTPUTS,
+                time = Timestamp(System.currentTimeMillis()),
+                expires = Timestamp(System.currentTimeMillis()),
+                memo = "memo",
+                paymentUrl = "www.payment.url/test",
+                merchantData = "merchant data",
+                beneficiaryParameters = beneficiaries,
+                senderParameters = sender,
+                attestationsRequested = ATTESTATIONS_REQUESTED
+            )
+            transactId.createPaymentRequest(paymentRequestParameters)
         }
     }
 
@@ -133,18 +180,51 @@ class TransactIdService {
         return if (paymentRequestModel.protocolMessageMetadata.encrypted) {
             logger.info("Creating Payment Encrypted...")
             logger.info("Returning Payment Encrypted...")
-            transactId.createPayment(
-                PAYMENT_PARAMETERS,
-                ownerParameters,
-                messageInformationEncrypted,
-                senderParameters,
-                recipientParameters
+            val originators = listOf(
+                PRIMARY_ORIGINATOR_PKI_X509SHA256,
+                NO_PRIMARY_ORIGINATOR_PKI_X509SHA256
             )
+            val beneficiaries = listOf(
+                PRIMARY_BENEFICIARY_PKI_X509SHA256
+            )
+            val paymentParameters = PaymentParameters(
+                merchantData = "merchant data",
+                transactions = arrayListOf(
+                    "transaction1".toByteArray(),
+                    "transaction2".toByteArray()
+                ),
+                outputs = OUTPUTS,
+                memo = "memo",
+                originatorParameters = originators,
+                beneficiaryParameters = beneficiaries,
+                messageInformation = messageInformationEncrypted,
+                senderParameters = senderParameters,
+                recipientParameters = recipientParameters
+            )
+            transactId.createPayment(paymentParameters)
 
         } else {
             logger.info("Creating Payment...")
             logger.info("Returning Payment...")
-            transactId.createPayment(PAYMENT_PARAMETERS, ownerParameters)
+            val originators = listOf(
+                PRIMARY_ORIGINATOR_PKI_X509SHA256,
+                NO_PRIMARY_ORIGINATOR_PKI_X509SHA256
+            )
+            val beneficiaries = listOf(
+                PRIMARY_BENEFICIARY_PKI_X509SHA256
+            )
+            val paymentParameters = PaymentParameters(
+                merchantData = "merchant data",
+                transactions = arrayListOf(
+                    "transaction1".toByteArray(),
+                    "transaction2".toByteArray()
+                ),
+                outputs = OUTPUTS,
+                memo = "memo",
+                originatorParameters = originators,
+                beneficiaryParameters = beneficiaries
+            )
+            transactId.createPayment(paymentParameters)
         }
     }
 
@@ -157,17 +237,22 @@ class TransactIdService {
         return if (paymentModel.protocolMessageMetadata!!.encrypted) {
             logger.info("Creating PaymentAck Encrypted...")
             logger.info("Returning PaymentAck Encrypted...")
-            transactId.createPaymentAck(
-                paymentModel,
-                "Payment successful",
-                messageInformationEncrypted,
-                senderParameters,
-                recipientParameters
+            val paymentAckParameters = PaymentAckParameters(
+                payment = PAYMENT,
+                memo = "memo ack",
+                messageInformation = messageInformationEncrypted,
+                senderParameters = senderParameters,
+                recipientParameters = recipientParameters
             )
+            transactId.createPaymentAck(paymentAckParameters)
         } else {
             logger.info("Creating PaymentAck...")
             logger.info("Returning PaymentAck...")
-            transactId.createPaymentAck(paymentModel, "Payment successful")
+            val paymentAckParameters = PaymentAckParameters(
+                payment = PAYMENT,
+                memo = "memo ack"
+            )
+            transactId.createPaymentAck(paymentAckParameters)
         }
     }
 }
