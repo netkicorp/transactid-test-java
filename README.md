@@ -52,6 +52,8 @@ Also you can implement your own clients to connect to the API.
 
 ## General Usage
 
+## Synchronous flow
+
 ### Initial invoice request
 
 Endpoint: `/initial-invoice-request`  
@@ -97,7 +99,60 @@ Description: `Send a payment binary to this endpoint and receive a paymentAck bi
 Verb: `POST`  
 Params:  
 - payment: `Binary containing payment`  
-Response: `Binary containing paymentAck`  
+Response: `Binary containing paymentAck` 
+
+## Asynchronous flow
+
+### Initial invoice request
+
+Endpoint: `/async/initial-invoice-request`  
+Description: `If you want to test your full flow with getting an invoiceRequest object at your correct endpoint use the POST as described and it will send the binary object to that URL.`  
+Verb: `POST`  
+Params:  
+- url: `URL to post invoiceRequest` 
+Response: `HttpStatus 202 or error code`  
+
+If you want to change the notificationUrl for the InvoiceRequest that will be sent, you can do it in `TransactIdService.NOTIFICATION_URL`
+
+### Initial invoice request Encrypted
+
+Endpoint: `/async/initial-invoice-request-encrypted`  
+Verb: `POST`  
+Description: `If you want to test your full flow with getting an invoiceRequest object at your correct endpoint use the POST as described and it will send the binary object to that URL.`  
+Params:  
+- url: `URL to post invoice-request`  
+Response: `HttpStatus 202 or error code`  
+
+If you want to change the notificationUrl for the InvoiceRequest that will be sent, you can do it in `TransactIdService.NOTIFICATION_URL`
+
+### Invoice request
+
+Endpoint: `/async/invoice-request`  
+Description: `This endpoint receives an invoiceRequest binary and gives a 202 in return. Asynchronously you will receive a PaymentRequest binary in your NotificationUrl defined in your invoiceRequest`  
+Verb: `POST`  
+Params:  
+- invoiceRequest: `Binary containing invoiceRequest`  
+Response: `HttpStatus 202 or error code`  
+
+If you want to change the paymentUrl for the PaymentRequest that will be sent, you can do it in `TransactIdService.PAYMENT_URL`
+
+### Payment request
+
+Endpoint: `/async/payment-request`  
+Description: `This endpoint receives a paymentRequest binary and gives a 202 in return. Asynchronousluy you will receive a Payment binary in your PaymentUrl defined in your paymentRequest.`  
+Verb: `POST`  
+Params:  
+- paymentRequest: `Binary containing paymentRequest`  
+Response: `HttpStatus 202 or error code` 
+
+### Payment  
+
+Endpoint: `/async/payment`  
+Description: `Send a payment binary to this endpoint and receive a paymentAck binary in return.`  
+Verb: `POST`  
+Params:  
+- payment: `Binary containing payment`  
+Response: `Binary containing paymentAck` 
 
 ### Encryption
 You can generate EncryptedMessages to test this functionality. Once you start the service you can fetch a set of ECDSA keys to use in your ProtocolMessages.
