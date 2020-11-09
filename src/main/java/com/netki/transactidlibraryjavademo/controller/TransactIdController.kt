@@ -1,9 +1,11 @@
 package com.netki.transactidlibraryjavademo.controller
 
-import com.netki.transactidlibraryjavademo.model.EncryptionKeys
 import com.netki.transactidlibraryjavademo.service.TransactIdService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -22,25 +24,23 @@ class TransactIdController {
     private lateinit var transactIdService: TransactIdService
 
     @Operation(
-        summary = "Get Encryption keys",
-        description = "Get the set of keys for the sender/recipient, this is needed if you want to generate encrypted messages"
-    )
-    @RequestMapping(
-        method = [RequestMethod.GET],
-        value = ["/encryption/keys"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    fun getEncryptionKeys(): ResponseEntity<EncryptionKeys> =
-        ResponseEntity.ok(transactIdService.getEncryptionKeys())
-
-    @Operation(
         summary = "Get invoiceRequest binary",
-        description = "Request receive back an invoiceRequest binary so that you can test parsing things"
+        description = "Returns an invoiceRequest binary so that you can start testing your flow"
     )
     @RequestMapping(
         method = [RequestMethod.GET],
         value = ["/initial-invoice-request"],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
+    )
+    @ApiResponse(
+        responseCode = "201",
+        description = "InvoiceRequest binary.",
+        content = [
+            Content(
+                mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                schema = Schema(implementation = ByteArray::class)
+            )
+        ]
     )
     fun getInitialInvoiceRequest() = ResponseEntity(
         transactIdService.getInitialInvoiceRequest(),
@@ -49,12 +49,22 @@ class TransactIdController {
 
     @Operation(
         summary = "Get invoiceRequest binary encrypted",
-        description = "Request receive back an invoiceRequest binary encrypted so that you can test parsing things"
+        description = "Returns an invoiceRequest binary encrypted so that you can start testing your flow"
     )
     @RequestMapping(
         method = [RequestMethod.GET],
         value = ["/initial-invoice-request-encrypted"],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
+    )
+    @ApiResponse(
+        responseCode = "201",
+        description = "InvoiceRequest binary.",
+        content = [
+            Content(
+                mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                schema = Schema(implementation = ByteArray::class)
+            )
+        ]
     )
     fun getInitialInvoiceRequestEncrypted() = ResponseEntity(
         transactIdService.getInitialInvoiceRequestEncrypted(),
@@ -62,14 +72,24 @@ class TransactIdController {
     )
 
     @Operation(
-        summary = "Post invoiceRequest binary",
-        description = "Send invoiceRequest binary to this endpoint and receive a paymentRequest binary in return."
+        summary = "Post an invoiceRequest binary",
+        description = "This endpoint receives an invoiceRequest binary and gives a paymentRequest binary in return."
     )
     @RequestMapping(
         method = [RequestMethod.POST],
         value = ["/invoice-request"],
         consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "PaymentRequest binary.",
+        content = [
+            Content(
+                mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                schema = Schema(implementation = ByteArray::class)
+            )
+        ]
     )
     fun postInvoiceRequest(
         @Parameter(description = "Binary containing invoiceRequest")
@@ -84,14 +104,24 @@ class TransactIdController {
     }
 
     @Operation(
-        summary = "Post paymentRequest binary",
-        description = "Send a paymentRequest binary to this endpoint and receive a payment binary in return."
+        summary = "Post a paymentRequest binary.",
+        description = "This endpoint receives a paymentRequest binary and gives a payment binary in return."
     )
     @RequestMapping(
         method = [RequestMethod.POST],
         value = ["/payment-request"],
         consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Payment binary.",
+        content = [
+            Content(
+                mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                schema = Schema(implementation = ByteArray::class)
+            )
+        ]
     )
     fun postPaymentRequest(
         @Parameter(description = "Binary containing paymentRequest")
@@ -106,14 +136,24 @@ class TransactIdController {
     }
 
     @Operation(
-        summary = "Post payment binary",
-        description = "Send a payment binary to this endpoint and receive a paymentAck binary in return."
+        summary = "Post a payment binary",
+        description = "This endpoint receives a payment binary and gives a paymentAck binary in return."
     )
     @RequestMapping(
         method = [RequestMethod.POST],
         value = ["/payment"],
         consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "PaymentAck binary.",
+        content = [
+            Content(
+                mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                schema = Schema(implementation = ByteArray::class)
+            )
+        ]
     )
     fun postPayment(
         @Parameter(description = "Binary containing payment")

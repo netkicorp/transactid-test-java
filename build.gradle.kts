@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.netki:transactid:1.0.0-beta2")
+    implementation("com.netki:transactid:1.1.0-beta2")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
