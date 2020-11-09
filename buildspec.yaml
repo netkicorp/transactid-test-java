@@ -1,0 +1,22 @@
+version: 0.2
+env:
+  secrets-manager:
+    DOCKER_USERNAME_PARAM: "/Codebuild/sapphire:DOCKER_USERNAME"
+    DOCKER_PASSWORD_PARAM: "/Codebuild/sapphire:DOCKER_PASSWORD"
+phases:
+  install:
+    commands:
+      - apt install -y git tar    
+  build:
+    commands:
+      - cd ..
+      - tar -czf tid-test.tar.gz --exclude='build/' --exclude='docker*' --exclude='scripts*' --exclude='*.yml' --exclude='.git*' --exclude='*.go' -C src .
+      - mv tid-test.tar.gz src/
+      - cd src
+      - tar -tvf tid-test.tar.gz
+      - "cat tid-test.tar.gz | docker build . -f docker/tid-test/Dockerfile -t netkicorporate/transactid-java:latest"
+      - export DOCKER_USERNAME=$DOCKER_USERNAME_PARAM
+      - export DOCKER_PASSWORD=$DOCKER_PASSWORD_PARAM
+      - echo $DOCKER_USERNAME
+      - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - docker push $IMAGE_REPO_NAME:latest
