@@ -14,7 +14,7 @@ phases:
       - mv tid-test.tar.gz src/
       - cd src
       - tar -tvf tid-test.tar.gz
-      - "cat tid-test.tar.gz | docker build . -f docker/tid-test/Dockerfile -t netkicorporate/transactid-java:latest"
+      - "cat tid-test.tar.gz | docker build . -f docker/Dockerfile -t netkicorporate/transactid-java:latest"
       - export DOCKER_USERNAME=$DOCKER_USERNAME_PARAM
       - export DOCKER_PASSWORD=$DOCKER_PASSWORD_PARAM
       - echo $DOCKER_USERNAME
