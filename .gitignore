@@ -77,3 +77,6 @@ fabric.properties
 # Dockerfile
 docker_release
 
+# TransactId CA cert
+src/main/resources/certificates/TransactIdCA.pem
+
