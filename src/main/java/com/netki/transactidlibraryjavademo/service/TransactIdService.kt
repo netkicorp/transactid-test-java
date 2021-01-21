@@ -3,7 +3,9 @@ package com.netki.transactidlibraryjavademo.service
 import com.netki.TransactId
 import com.netki.model.*
 import com.netki.transactidlibraryjavademo.model.EncryptionKeys
+import com.netki.transactidlibraryjavademo.model.Information
 import com.netki.transactidlibraryjavademo.repo.TransactIdRepository
+import com.netki.transactidlibraryjavademo.util.Certificates.VASP_CERTIFICATE
 import com.netki.transactidlibraryjavademo.util.TestData.Attestations.ATTESTATIONS_REQUESTED
 import com.netki.transactidlibraryjavademo.util.TestData.Beneficiaries.NO_PRIMARY_BENEFICIARY_PKI_X509SHA256
 import com.netki.transactidlibraryjavademo.util.TestData.Beneficiaries.PRIMARY_BENEFICIARY_PKI_X509SHA256
@@ -63,6 +65,8 @@ class TransactIdService {
     }
 
     fun getEncryptionKeys() = encryptionKeys
+
+    fun getVaspCertificate() = Information(VASP_CERTIFICATE)
 
     fun sendInitialInvoiceRequest(url: String) {
         val invoiceRequest = getInitialInvoiceRequest()
@@ -138,7 +142,7 @@ class TransactIdService {
         val invoiceRequestModel =
             transactId.parseInvoiceRequest(invoiceRequest, recipientParameters)
         logger.info("InvoiceRequest parsed: $invoiceRequestModel")
-        return createPaymentRequest(invoiceRequestModel.protocolMessageMetadata.encrypted)
+        return createPaymentRequest(invoiceRequestModel.protocolMessageMetadata.encrypted, invoiceRequestModel.protocolMessageMetadata.identifier)
     }
 
     fun postInvoiceRequestAsync(invoiceRequest: ByteArray) {
@@ -158,12 +162,12 @@ class TransactIdService {
             throw IllegalArgumentException("Missing notificationUrl to send the async response")
         } else {
             val paymentRequest =
-                createPaymentRequest(invoiceRequestModel.protocolMessageMetadata.encrypted)
+                createPaymentRequest(invoiceRequestModel.protocolMessageMetadata.encrypted, invoiceRequestModel.protocolMessageMetadata.identifier)
             transactIdRepository.sendRequestNoResponse(paymentRequest, notificationUrl)
         }
     }
 
-    private fun createPaymentRequest(encrypted: Boolean): ByteArray {
+    private fun createPaymentRequest(encrypted: Boolean, identifier: String): ByteArray {
         return if (encrypted) {
             logger.info("Creating PaymentRequest Encrypted...")
             logger.info("Returning PaymentRequest Encrypted...")
@@ -185,7 +189,7 @@ class TransactIdService {
                 messageInformation = messageInformationEncrypted,
                 recipientParameters = recipientParameters
             )
-            transactId.createPaymentRequest(paymentRequestParameters)
+            transactId.createPaymentRequest(paymentRequestParameters, identifier)
         } else {
             logger.info("Creating PaymentRequest...")
             logger.info("Returning PaymentRequest...")
@@ -206,7 +210,7 @@ class TransactIdService {
                 senderParameters = sender,
                 attestationsRequested = ATTESTATIONS_REQUESTED
             )
-            transactId.createPaymentRequest(paymentRequestParameters)
+            transactId.createPaymentRequest(paymentRequestParameters, identifier)
         }
     }
 
@@ -270,7 +274,7 @@ class TransactIdService {
                 senderParameters = senderParameters,
                 recipientParameters = recipientParameters
             )
-            transactId.createPayment(paymentParameters)
+            transactId.createPayment(paymentParameters, paymentRequestModel.protocolMessageMetadata.identifier)
 
         } else {
             logger.info("Creating Payment...")
@@ -293,7 +297,7 @@ class TransactIdService {
                 originatorParameters = originators,
                 beneficiaryParameters = beneficiaries
             )
-            transactId.createPayment(paymentParameters)
+            transactId.createPayment(paymentParameters, paymentRequestModel.protocolMessageMetadata.identifier)
         }
     }
 
@@ -313,7 +317,7 @@ class TransactIdService {
                 senderParameters = senderParameters,
                 recipientParameters = recipientParameters
             )
-            transactId.createPaymentAck(paymentAckParameters)
+            transactId.createPaymentAck(paymentAckParameters, paymentModel.protocolMessageMetadata!!.identifier)
         } else {
             logger.info("Creating PaymentAck...")
             logger.info("Returning PaymentAck...")
@@ -321,7 +325,7 @@ class TransactIdService {
                 payment = PAYMENT,
                 memo = "memo ack"
             )
-            transactId.createPaymentAck(paymentAckParameters)
+            transactId.createPaymentAck(paymentAckParameters, paymentModel.protocolMessageMetadata!!.identifier)
         }
     }
 }

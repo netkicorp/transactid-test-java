@@ -202,14 +202,14 @@ object TestData {
 
     object PkiData {
         val PKI_DATA_ONE_OWNER_X509SHA256 = PkiDataParameters(
-            attestation = Attestation.LEGAL_PERSON_SECONDARY_NAME,
+            attestation = Attestation.LEGAL_PERSON_NAME,
             privateKeyPem = CLIENT_PRIVATE_KEY_CHAIN_ONE,
             certificatePem = CLIENT_CERTIFICATE_CHAIN_ONE,
             type = PkiType.X509SHA256
         )
 
         val PKI_DATA_TWO_OWNER_X509SHA256 = PkiDataParameters(
-            attestation = Attestation.LEGAL_PERSON_PRIMARY_NAME,
+            attestation = Attestation.LEGAL_PERSON_NAME,
             privateKeyPem = CLIENT_PRIVATE_KEY_CHAIN_TWO,
             certificatePem = CLIENT_CERTIFICATE_CHAIN_TWO,
             type = PkiType.X509SHA256
@@ -224,7 +224,7 @@ object TestData {
 
     object Attestations {
         val ATTESTATIONS_REQUESTED = listOf(
-            Attestation.LEGAL_PERSON_PRIMARY_NAME,
+            Attestation.LEGAL_PERSON_NAME,
             Attestation.ADDRESS_STREET_NAME,
             Attestation.ADDRESS_ADDRESS_LINE
         )
