@@ -1,5 +1,6 @@
 package com.netki.transactidlibraryjavademo.controller
 
+import com.netki.transactidlibraryjavademo.model.Information
 import com.netki.transactidlibraryjavademo.service.TransactIdService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -22,6 +23,30 @@ class TransactIdController {
 
     @Autowired
     private lateinit var transactIdService: TransactIdService
+
+    @Operation(
+        summary = "Get VASP certificate",
+        description = "Returns the VASP certificate"
+    )
+    @RequestMapping(
+        method = [RequestMethod.GET],
+        value = ["/"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "VASP certificate.",
+        content = [
+            Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = Schema(implementation = Information::class)
+            )
+        ]
+    )
+    fun getVASPCertificate() = ResponseEntity(
+        transactIdService.getVaspCertificate(),
+        HttpStatus.OK
+    )
 
     @Operation(
         summary = "Get invoiceRequest binary",
