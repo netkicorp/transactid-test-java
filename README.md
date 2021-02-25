@@ -179,7 +179,7 @@ Response: `Binary containing paymentAck`
 ### Encryption
 You can generate EncryptedMessages to test this functionality. Once you start the service you can fetch a set of ECDSA keys to use in your ProtocolMessages.
 
-Endpoint: `/encryption/keys`  
+Endpoint: `/utils/encryption/keys`
 Description: `Send a GET request to this to receive a set of sender/recipient keys to test encrypted messages`  
 Verb: `GET`  
 Response: `Set of keys to do encryption`  
