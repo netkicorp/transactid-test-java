@@ -52,7 +52,29 @@ Also you can implement your own clients to connect to the API.
 
 ## General Usage
 
-## Synchronous flow
+## Bip75
+
+### Synchronous flow
+
+Endpoint: `/addresses/{address_id}/messages`  
+Description: `Send protocol message binary to this endpoint and receive the correspondent protocol message response synchronous.`  
+Verb: `POST`  
+Params:
+- protocolMessage: `Binary containing protocolMessage`  
+Response: `Binary containing protocolMessage`
+
+### Async flow
+
+Endpoint: `/addresses/{address_id}/messages?async=true`  
+Description: `This endpoint receives a protocolMessage binary and gives a 202 in return. Asynchronously you will receive the correspondent protocolMessage binary in the URL defined in the protocolMessage`  
+Verb: `POST`  
+Params:
+- invoiceRequest: `Binary containing protocolMessage`  
+Response: `HttpStatus 202 or error code`
+  
+## Testing messages independently
+
+### Synchronous flow
 
 ### Initial invoice request
 
@@ -101,7 +123,7 @@ Params:
 - payment: `Binary containing payment`  
 Response: `Binary containing paymentAck` 
 
-## Asynchronous flow
+### Asynchronous flow
 
 ### Initial invoice request
 
