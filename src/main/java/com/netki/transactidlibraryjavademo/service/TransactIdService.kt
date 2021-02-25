@@ -68,6 +68,40 @@ class TransactIdService {
 
     fun getVaspCertificate() = Information(VASP_CERTIFICATE)
 
+    fun sendProtocolMessage(addressId: String, protocolMessage: ByteArray): ByteArray? {
+        val protocolMessageMetadata = transactId.getProtocolMessageMetadata(protocolMessage)
+        val isEncrypted = protocolMessageMetadata.encrypted
+        val messageType = protocolMessageMetadata.messageType
+        val identifier = protocolMessageMetadata.identifier
+        return when (messageType) {
+            MessageType.INVOICE_REQUEST -> createPaymentRequest(isEncrypted, identifier)
+            MessageType.PAYMENT_REQUEST -> createPayment(protocolMessage)
+            MessageType.PAYMENT -> createPaymentAck(isEncrypted, identifier)
+            MessageType.PAYMENT_ACK -> null
+            MessageType.UNKNOWN_MESSAGE_TYPE -> throw IllegalArgumentException("UNKNOWN_MESSAGE_TYPE")
+        }
+    }
+
+    fun sendProtocolMessageAsync(addressId: String, protocolMessage: ByteArray): ByteArray? {
+        val protocolMessageMetadata = transactId.getProtocolMessageMetadata(protocolMessage)
+        val isEncrypted = protocolMessageMetadata.encrypted
+        val messageType = protocolMessageMetadata.messageType
+        val identifier = protocolMessageMetadata.identifier
+        return when (messageType) {
+            MessageType.INVOICE_REQUEST -> {
+                postInvoiceRequestAsync(protocolMessage)
+                null
+            }
+            MessageType.PAYMENT_REQUEST -> {
+                postPaymentRequestAsync(protocolMessage)
+                null
+            }
+            MessageType.PAYMENT -> createPaymentAck(isEncrypted, identifier)
+            MessageType.PAYMENT_ACK -> null
+            MessageType.UNKNOWN_MESSAGE_TYPE -> throw IllegalArgumentException("UNKNOWN_MESSAGE_TYPE")
+        }
+    }
+
     fun sendInitialInvoiceRequest(url: String) {
         val invoiceRequest = getInitialInvoiceRequest()
         transactIdRepository.sendRequestNoResponse(invoiceRequest, url)
@@ -90,7 +124,7 @@ class TransactIdService {
         val sender = SENDER_PKI_X509SHA256
         val invoiceRequestParameters = InvoiceRequestParameters(
             amount = 1000,
-            memo = "memo",
+            memo = "InvoiceRequest Memo",
             notificationUrl = NOTIFICATION_URL,
             originatorsAddresses = OUTPUTS,
             originatorParameters = originators,
@@ -115,7 +149,7 @@ class TransactIdService {
         )
         val invoiceRequestParameters = InvoiceRequestParameters(
             amount = 1000,
-            memo = "memo",
+            memo = "InvoiceRequest Encrypted Memo",
             notificationUrl = NOTIFICATION_URL,
             originatorsAddresses = OUTPUTS,
             originatorParameters = originators,
@@ -134,24 +168,31 @@ class TransactIdService {
     fun postInvoiceRequest(invoiceRequest: ByteArray): ByteArray {
         logger.info("InvoiceRequest received")
         logger.info(
-            "InvoiceRequest valid? ${transactId.isInvoiceRequestValid(
-                invoiceRequest,
-                recipientParameters
-            )}"
+            "InvoiceRequest valid? ${
+                transactId.isInvoiceRequestValid(
+                    invoiceRequest,
+                    recipientParameters
+                )
+            }"
         )
         val invoiceRequestModel =
             transactId.parseInvoiceRequest(invoiceRequest, recipientParameters)
         logger.info("InvoiceRequest parsed: $invoiceRequestModel")
-        return createPaymentRequest(invoiceRequestModel.protocolMessageMetadata.encrypted, invoiceRequestModel.protocolMessageMetadata.identifier)
+        return createPaymentRequest(
+            invoiceRequestModel.protocolMessageMetadata.encrypted,
+            invoiceRequestModel.protocolMessageMetadata.identifier
+        )
     }
 
     fun postInvoiceRequestAsync(invoiceRequest: ByteArray) {
         logger.info("InvoiceRequest received")
         logger.info(
-            "InvoiceRequest valid? ${transactId.isInvoiceRequestValid(
-                invoiceRequest,
-                recipientParameters
-            )}"
+            "InvoiceRequest valid? ${
+                transactId.isInvoiceRequestValid(
+                    invoiceRequest,
+                    recipientParameters
+                )
+            }"
         )
         val invoiceRequestModel =
             transactId.parseInvoiceRequest(invoiceRequest, recipientParameters)
@@ -162,7 +203,10 @@ class TransactIdService {
             throw IllegalArgumentException("Missing notificationUrl to send the async response")
         } else {
             val paymentRequest =
-                createPaymentRequest(invoiceRequestModel.protocolMessageMetadata.encrypted, invoiceRequestModel.protocolMessageMetadata.identifier)
+                createPaymentRequest(
+                    invoiceRequestModel.protocolMessageMetadata.encrypted,
+                    invoiceRequestModel.protocolMessageMetadata.identifier
+                )
             transactIdRepository.sendRequestNoResponse(paymentRequest, notificationUrl)
         }
     }
@@ -180,7 +224,7 @@ class TransactIdService {
                 beneficiariesAddresses = OUTPUTS,
                 time = Timestamp(System.currentTimeMillis()),
                 expires = Timestamp(System.currentTimeMillis()),
-                memo = "memo",
+                memo = "PaymentRequest Encrypted Memo",
                 paymentUrl = PAYMENT_URL,
                 merchantData = "merchant data",
                 beneficiaryParameters = beneficiaries,
@@ -203,7 +247,7 @@ class TransactIdService {
                 beneficiariesAddresses = OUTPUTS,
                 time = Timestamp(System.currentTimeMillis()),
                 expires = Timestamp(System.currentTimeMillis()),
-                memo = "memo",
+                memo = "PaymentRequest Memo",
                 paymentUrl = PAYMENT_URL,
                 merchantData = "merchant data",
                 beneficiaryParameters = beneficiaries,
@@ -217,10 +261,12 @@ class TransactIdService {
     fun postPaymentRequest(paymentRequest: ByteArray): ByteArray {
         logger.info("PaymentRequest received")
         logger.info(
-            "PaymentRequest valid? ${transactId.isPaymentRequestValid(
-                paymentRequest,
-                recipientParameters
-            )}"
+            "PaymentRequest valid? ${
+                transactId.isPaymentRequestValid(
+                    paymentRequest,
+                    recipientParameters
+                )
+            }"
         )
         return createPayment(paymentRequest)
     }
@@ -228,10 +274,12 @@ class TransactIdService {
     fun postPaymentRequestAsync(paymentRequest: ByteArray) {
         logger.info("PaymentRequest received")
         logger.info(
-            "PaymentRequest valid? ${transactId.isPaymentRequestValid(
-                paymentRequest,
-                recipientParameters
-            )}"
+            "PaymentRequest valid? ${
+                transactId.isPaymentRequestValid(
+                    paymentRequest,
+                    recipientParameters
+                )
+            }"
         )
         val paymentRequestModel =
             transactId.parsePaymentRequest(paymentRequest, recipientParameters)
@@ -267,14 +315,17 @@ class TransactIdService {
                     "transaction2".toByteArray()
                 ),
                 outputs = OUTPUTS,
-                memo = "memo",
+                memo = "Payment Encrypted Memo",
                 originatorParameters = originators,
                 beneficiaryParameters = beneficiaries,
                 messageInformation = messageInformationEncrypted,
                 senderParameters = senderParameters,
                 recipientParameters = recipientParameters
             )
-            transactId.createPayment(paymentParameters, paymentRequestModel.protocolMessageMetadata.identifier)
+            transactId.createPayment(
+                paymentParameters,
+                paymentRequestModel.protocolMessageMetadata.identifier
+            )
 
         } else {
             logger.info("Creating Payment...")
@@ -293,11 +344,14 @@ class TransactIdService {
                     "transaction2".toByteArray()
                 ),
                 outputs = OUTPUTS,
-                memo = "memo",
+                memo = "Payment Memo",
                 originatorParameters = originators,
                 beneficiaryParameters = beneficiaries
             )
-            transactId.createPayment(paymentParameters, paymentRequestModel.protocolMessageMetadata.identifier)
+            transactId.createPayment(
+                paymentParameters,
+                paymentRequestModel.protocolMessageMetadata.identifier
+            )
         }
     }
 
@@ -307,25 +361,32 @@ class TransactIdService {
         val paymentModel = transactId.parsePayment(payment, recipientParameters)
         logger.info("Payment parsed: $paymentModel")
 
-        return if (paymentModel.protocolMessageMetadata!!.encrypted) {
+        return createPaymentAck(
+            paymentModel.protocolMessageMetadata!!.encrypted,
+            paymentModel.protocolMessageMetadata!!.identifier
+        )
+    }
+
+    private fun createPaymentAck(encrypted: Boolean, identifier: String): ByteArray {
+        return if (encrypted) {
             logger.info("Creating PaymentAck Encrypted...")
             logger.info("Returning PaymentAck Encrypted...")
             val paymentAckParameters = PaymentAckParameters(
                 payment = PAYMENT,
-                memo = "memo ack",
+                memo = "PaymentAck Encrypted Memo",
                 messageInformation = messageInformationEncrypted,
                 senderParameters = senderParameters,
                 recipientParameters = recipientParameters
             )
-            transactId.createPaymentAck(paymentAckParameters, paymentModel.protocolMessageMetadata!!.identifier)
+            transactId.createPaymentAck(paymentAckParameters, identifier)
         } else {
             logger.info("Creating PaymentAck...")
             logger.info("Returning PaymentAck...")
             val paymentAckParameters = PaymentAckParameters(
                 payment = PAYMENT,
-                memo = "memo ack"
+                memo = "PaymentAck Memo"
             )
-            transactId.createPaymentAck(paymentAckParameters, paymentModel.protocolMessageMetadata!!.identifier)
+            transactId.createPaymentAck(paymentAckParameters, identifier)
         }
     }
 }
