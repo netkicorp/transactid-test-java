@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.netki"
-version = "1.0.0-beta5"
+version = "2.0.0-beta1"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
@@ -18,7 +18,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.netki:transactid:1.0.0-beta5")
+    implementation("com.netki:transactid-core:2.0.0-beta1")
+    implementation("com.netki:transactid:2.0.0-beta1")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
